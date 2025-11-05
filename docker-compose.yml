@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx
+    container_name: my-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ~/my-website:/usr/share/nginx/html
+    restart: unless-stopped
