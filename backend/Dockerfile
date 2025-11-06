@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm i
+RUN npm install
 
 # Copy the rest of the application code
 COPY . .
@@ -21,15 +21,10 @@ COPY . .
 # -g nodejs: assigns the user to the nodejs group
 # -s /bin/bash: sets the shell to bash
 # -m: creates a home directory for the user
-RUN groupadd -g 1001 nodejs && \
-    useradd -u 1001 -g nodejs -s /bin/bash -m nodejs
 
-# Change ownership of the app directory to the nodejs user
-RUN chown -R nodejs:nodejs /app
-USER nodejs
 
 # Expose the port the app runs on
 EXPOSE 3000
 
 # Define the command to run the application
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
