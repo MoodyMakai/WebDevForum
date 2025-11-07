@@ -1,0 +1,87 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #fafafa;
+    color: #333;
+}
+
+.container {
+    width: 80%;
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.forum-intro {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.post-comment {
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.comment-form textarea {
+    width: 100%;
+    height: 100px;
+    resize: none;
+    padding: 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+}
+
+.comment-form button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.comment-form button:hover {
+    background-color: #0056b3;
+}
+
+.comment-feed h2 {
+    margin-bottom: 1rem;
+}
+
+.comment-list {
+    list-style: none;
+    padding: 0;
+}
+
+.comment {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.comment-author {
+    font-weight: bold;
+}
+
+.comment-date {
+    color: #777;
+    font-size: 0.9rem;
+}
+
+.no-comments {
+    text-align: center;
+    color: #888;
+}
