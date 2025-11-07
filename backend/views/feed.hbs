@@ -1,0 +1,15 @@
+{{!< layouts/main }}
+
+<section class="feed">
+  <h2>Public Feed</h2>
+  <form action="/comment" method="POST" class="comment-form">
+    <textarea name="comment" placeholder="Write something insecure..." required></textarea>
+    <button type="submit">Post Comment</button>
+  </form>
+
+  <ul class="comments">
+    {{#each comments}}
+      <li><strong>{{this.author}}:</strong> {{this.text}}</li>
+    {{/each}}
+  </ul>
+</section>

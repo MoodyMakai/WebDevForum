@@ -3,7 +3,7 @@ services:
   backend-nodejs:
     build: ./backend
     container_name: backend-nodejs
-    restart: unless-stopped
+    #restart: unless-stopped
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -11,7 +11,6 @@ services:
     volumes:
       - ./backend:/usr/src/app
       - ./public:/usr/src/app/public
-    restart: unless-stopped
     networks:
       - app-network
 
@@ -19,7 +18,7 @@ services:
   nginx:
     build: ./nginx
     container_name: my-nginx-proxy
-    restart: unless-stopped
+    #restart: unless-stopped
     ports:
       - "80:80"  # Only nginx exposes ports to the host
     depends_on:
