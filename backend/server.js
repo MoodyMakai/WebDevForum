@@ -97,12 +97,14 @@ app.post("/login", (req, res) => {
 
   req.session.username = username;
   console.log(`User logged in: ${username}`);
+  res.cookie("username", username);
   res.redirect("/feed");
 });
 
 // Logout
 app.get("/logout", (req, res) => {
   req.session = null;
+  res.clearCookie("username");
   res.redirect("/");
 });
 
