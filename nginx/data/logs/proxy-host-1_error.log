@@ -1,0 +1,5 @@
+2025/12/11 01:55:42 [warn] 212#212: *870 using uninitialized "server" variable while logging request, client: 208.84.101.154, server: bhbuilders.org
+2025/12/11 07:43:58 [error] 216#216: *1847 open() "/data/letsencrypt-acme-challenge/.well-known/acme-challenge/file.php" failed (2: No such file or directory), client: 172.161.75.8, server: bhbuilders.org, request: "GET /.well-known/acme-challenge/file.php HTTP/1.1", host: "bhbuilders.org", referrer: "https://www.yahoo.com/"
+2025/12/11 07:43:58 [error] 216#216: *1847 open() "/data/letsencrypt-acme-challenge/.well-known/acme-challenge/wp-login.php" failed (2: No such file or directory), client: 172.161.75.8, server: bhbuilders.org, request: "GET /.well-known/acme-challenge/wp-login.php HTTP/1.1", host: "bhbuilders.org", referrer: "https://www.google.fr/"
+2025/12/11 14:27:45 [warn] 220#220: *4152 using uninitialized "server" variable while logging request, client: 208.84.101.154, server: bhbuilders.org
+2025/12/11 16:17:40 [warn] 220#220: *4248 using uninitialized "server" variable while logging request, client: 217.216.33.210, server: bhbuilders.org

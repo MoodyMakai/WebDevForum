@@ -1,0 +1,23 @@
+{
+  "name": "webdevforum",
+  "version": "1.0.0",
+  "description": "it is what it is.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MoodyMakai/WebDevForum.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MoodyMakai/WebDevForum/issues"
+  },
+  "homepage": "https://github.com/MoodyMakai/WebDevForum#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
