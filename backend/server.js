@@ -117,6 +117,14 @@ app.get("/feed", requireAuth, (req, res) => {
   });
 });
 
+app.get("/user", requireAuth, (req, res) => {
+  res.render("profile page", {
+    title: "profile page",
+    comments,
+    username: req.session.username,
+  });
+});
+
 // comment
 app.post("/comment", requireAuth, (req, res) => {
   const { comment } = req.body;
