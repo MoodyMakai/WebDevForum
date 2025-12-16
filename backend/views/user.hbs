@@ -1,17 +1,23 @@
 {{!< layouts/main }}
 
 <section class="dwellings">
-  <h2>User's Abode</h2>
+  <h2>{{user.displayName}}'s Abode</h2>
   
   <p>Customization</p>
-  <ul>
-    <li>Rojo</li>
-    <li>Verde</li>
-    <li>Blue</li>
-  </ul>
 
-  <button>Change Display Name</button>
-  <button>Change Password</button>
-  <button>Change Email</button>
+  {{#if customizationOptions}}
+    <ul>
+      {{#each customizationOptions}}
+        <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  {{else}}
+    <p>No customization options available.</p>
+  {{/if}}
 
+  <div class="account-actions">
+    <button data-action="change-name">Change Display Name</button>
+    <button data-action="change-password">Change Password</button>
+    <button data-action="change-email">Change Email</button>
+  </div>
 </section>

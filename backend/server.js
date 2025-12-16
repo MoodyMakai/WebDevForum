@@ -2,13 +2,13 @@ const express = require("express");
 const exphbs = require("express-handlebars");
 const cookieSession = require("cookie-session");
 const path = require("path");
+const argon2 = require("argon2");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const db = require("./db/database");
 
-const users = []; 
-const comments = []; 
 
 // Middleware 
 app.use(express.urlencoded({ extended: true }));
@@ -65,73 +65,103 @@ app.get("/register", (req, res) => {
   res.render("register", { title: "Register" });
 });
 
-// Registration
-app.post("/register", (req, res) => {
+// Registration with async hashing logic
+app.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
-  if (users.find((u) => u.username === username)) {
-    return res.status(400).send("taken");
+  try {
+    const hashedPassword = await argon2.hash(password);
+
+    db.prepare(
+      "INSERT INTO users (username, password) VALUES (?, ?)"
+    ).run(username, hashedPassword);
+
+    res.redirect("/login");
+  } catch (err) {
+    res.render("register", { error: "Username already exists" });
   }
-
-
-  users.push({ username, password });
-  console.log("Registered users:", users);
-  res.redirect("/login");
 });
+
 
 // Login 
 app.get("/login", (req, res) => {
   res.render("login", { title: "Login" });
 });
 
-// Handle Login
-app.post("/login", (req, res) => {
+// Handle Login also with argon support
+app.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  const user = users.find(
-    (u) => u.username === username && u.password === password
-  );
+
+  const user = db.prepare(
+    "SELECT * FROM users WHERE username = ?"
+  ).get(username);
 
   if (!user) {
-    return res.status(401).send("wrong");
+    return res.render("login", { error: "Invalid credentials" });
+  }
+
+  const valid = await argon2.verify(user.password, password);
+
+  if (!valid) {
+    return res.render("login", { error: "Invalid credentials" });
   }
 
   req.session.username = username;
-  console.log(`User logged in: ${username}`);
-  res.cookie("username", username);
   res.redirect("/feed");
 });
+
+
 
 // Logout
 app.get("/logout", (req, res) => {
   req.session = null;
-  res.clearCookie("username");
   res.redirect("/");
 });
 
 // Feed 
 app.get("/feed", requireAuth, (req, res) => {
+  const stmt = db.prepare(`
+    SELECT comments.content, users.username
+    FROM comments
+    JOIN users ON comments.user_id = users.id
+    ORDER BY comments.created_at DESC
+  `);
+
+  const comments = stmt.all();
+
   res.render("feed", {
-    title: "Public Feed",
-    comments,
     username: req.session.username,
+    comments
   });
 });
 
+
 app.get("/user", requireAuth, (req, res) => {
-  res.render("profile page", {
-    title: "profile page",
-    comments,
-    username: req.session.username,
+  res.render("user", {
+    user: {
+    displayName: req.session.username
+  },
+  customizationOptions: ["Rojo", "Verde", "Blue"]
   });
 });
 
 // comment
 app.post("/comment", requireAuth, (req, res) => {
   const { comment } = req.body;
-  comments.push({ author: req.session.username, text: comment });
-  console.log("New comment:", { author: req.session.username, text: comment });
+
+  const userStmt = db.prepare(
+    "SELECT id FROM users WHERE username = ?"
+  );
+  const user = userStmt.get(req.session.username);
+
+  const stmt = db.prepare(
+    "INSERT INTO comments (user_id, content) VALUES (?, ?)"
+  );
+  stmt.run(user.id, comment);
+
   res.redirect("/feed");
 });
+
 
 
 app.listen(PORT, () => {
