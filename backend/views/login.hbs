@@ -10,5 +10,9 @@
     <input type="password" name="password" required />
 
     <button type="submit">admit</button>
+    {{#if error}}
+    <div class="wrong username or password">{{error}}</div>
+    {{/if}}
+
   </form>
 </section>

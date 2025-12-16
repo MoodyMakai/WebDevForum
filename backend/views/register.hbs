@@ -5,10 +5,16 @@
   <form action="/register" method="POST">
     <label>Username:</label>
     <input type="text" name="username" required />
+
+    <label>Display Name:</label>
+    <input type="text" name="display_name" required />
     
     <label>Password:</label>
     <input type="password" name="password" required />
 
     <button type="submit">bleh</button>
+    {{#if error}}
+      <div class="password does not meet security: 8 Characters, uppercase letter, number, special character">{{error}}</div>
+    {{/if}}
   </form>
 </section>

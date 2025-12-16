@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/MoodyMakai/WebDevForum#readme",
   "dependencies": {
-    "express": "^5.2.1"
+    "better-sqlite3": "^12.5.0",
+    "express": "^5.2.1",
+    "sqlite3": "^5.1.7"
   }
 }

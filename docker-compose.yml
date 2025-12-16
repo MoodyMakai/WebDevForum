@@ -9,6 +9,8 @@ services:
       - PORT=3000
     networks:
       - app-network
+    volumes:
+      - ./backend/db:/app/db
 
   # Nginx Proxy Manager
   nginx-proxy-manager:

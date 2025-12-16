@@ -44,13 +44,28 @@ app.use((req, res, next) => {
 
 // Middleware
 function requireAuth(req, res, next) {
-  if (!req.session.username) {
+  if (!req.session.user) {
     return res.redirect("/login");
   }
   next();
 }
 
-// Routes
+//Enforce password security
+function isStrongPassword(password) {
+  const minLength = 8;
+  const upper = /[A-Z]/;
+  const lower = /[a-z]/;
+  const number = /[0-9]/;
+  const special = /[^A-Za-z0-9]/;
+
+  return (
+    password.length >= minLength &&
+    upper.test(password) &&
+    lower.test(password) &&
+    number.test(password) &&
+    special.test(password)
+  );
+}
 
 // Home
 app.get("/", (req, res) => {
@@ -60,27 +75,56 @@ app.get("/", (req, res) => {
   });
 });
 
+
 // Register Page
 app.get("/register", (req, res) => {
   res.render("register", { title: "Register" });
 });
 
-// Registration with async hashing logic
+// Registration with async hashing logic, and min security reqs
 app.post("/register", async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, display_name } = req.body;
+
+  if (!username || !password || !display_name) {
+    return res.render("register", {
+      error: "All fields are required"
+    });
+  }
+
+  if (display_name === username) {
+    return res.render("register", {
+      error: "Display name must be different from username"
+    });
+  }
 
   try {
-    const hashedPassword = await argon2.hash(password);
+    const hash = await argon2.hash(password);
 
-    db.prepare(
-      "INSERT INTO users (username, password) VALUES (?, ?)"
-    ).run(username, hashedPassword);
+    db.prepare(`
+      INSERT INTO users (
+        username,
+        password,
+        display_name,
+        failed_login_attempts,
+        lock_until
+      )
+      VALUES (?, ?, ?, 0, NULL)
+    `).run(username, hash, display_name);
 
     res.redirect("/login");
   } catch (err) {
-    res.render("register", { error: "Username already exists" });
+    console.error(err);
+
+    let message = "Registration failed";
+
+    if (err.message.includes("users.username")) {
+      message = "Username already exists";
+    } 
+
+    res.render("register", { error: message });
   }
 });
+
 
 
 // Login 
@@ -92,23 +136,84 @@ app.get("/login", (req, res) => {
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
+  // 1Fetch user
   const user = db.prepare(
     "SELECT * FROM users WHERE username = ?"
   ).get(username);
 
+  // If user doesn't exist 
   if (!user) {
-    return res.render("login", { error: "Invalid credentials" });
+    db.prepare(`
+      INSERT INTO login_attempts (username, ip_address, success)
+      VALUES (?, ?, 0)
+    `).run(username, req.ip);
+
+    return res.render("login", { error: "Invalid username or password" });
   }
 
+  // Check account lock
+  if (user.lock_until && new Date(user.lock_until) > new Date()) {
+    return res.render("login", {
+      error: "Account locked. Try again later."
+    });
+  }
+
+  // Verify password
   const valid = await argon2.verify(user.password, password);
 
+  //  Password incorrect
   if (!valid) {
-    return res.render("login", { error: "Invalid credentials" });
+    const attempts = user.failed_login_attempts + 1;
+
+    let lockUntil = null;
+    if (attempts >= 5) {
+      lockUntil = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    }
+
+    // Update user security state
+    db.prepare(`
+      UPDATE users
+      SET failed_login_attempts = ?, lock_until = ?
+      WHERE id = ?
+    `).run(attempts, lockUntil, user.id);
+
+    // Log failed attempt
+    db.prepare(`
+      INSERT INTO login_attempts (user_id, username, ip_address, success)
+      VALUES (?, ?, ?, 0)
+    `).run(user.id, username, req.ip);
+
+    return res.render("login", {
+      error: attempts >= 5
+        ? "Account locked due to too many failed attempts."
+        : "Invalid username or password"
+    });
   }
 
-  req.session.username = username;
+  //Password correct, Reset counters
+  db.prepare(`
+    UPDATE users
+    SET failed_login_attempts = 0,
+        lock_until = NULL
+    WHERE id = ?
+  `).run(user.id);
+
+  // Log successful login
+  db.prepare(`
+    INSERT INTO login_attempts (user_id, username, ip_address, success)
+    VALUES (?, ?, ?, 1)
+  `).run(user.id, username, req.ip);
+
+  //  Establish session
+  req.session.user = {
+    id: user.id,
+    username: user.username,
+    display_name: user.display_name
+  };
+
   res.redirect("/feed");
 });
+
 
 
 
@@ -149,15 +254,12 @@ app.get("/user", requireAuth, (req, res) => {
 app.post("/comment", requireAuth, (req, res) => {
   const { comment } = req.body;
 
-  const userStmt = db.prepare(
-    "SELECT id FROM users WHERE username = ?"
-  );
-  const user = userStmt.get(req.session.username);
+  const userId = req.session.user.id;
 
-  const stmt = db.prepare(
-    "INSERT INTO comments (user_id, content) VALUES (?, ?)"
-  );
-  stmt.run(user.id, comment);
+  db.prepare(`
+    INSERT INTO comments (user_id, content)
+    VALUES (?, ?)
+  `).run(userId, comment);
 
   res.redirect("/feed");
 });

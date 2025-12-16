@@ -2,6 +2,7 @@
 
 <section class="feed">
   <h2>Echo Chamber</h2>
+
   <form action="/comment" method="POST" class="comment-form">
     <textarea name="comment" placeholder="speak" required></textarea>
     <button type="submit">Post Comment</button>
@@ -9,7 +10,10 @@
 
   <ul class="comments">
     {{#each comments}}
-      <li><strong>{{this.author}}:</strong> {{this.text}}</li>
+      <li>
+        <strong>{{username}}:</strong>
+        {{content}}
+      </li>
     {{/each}}
   </ul>
 </section>
