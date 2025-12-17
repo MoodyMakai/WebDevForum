@@ -8,12 +8,56 @@
     <button type="submit">Post Comment</button>
   </form>
 
-  <ul class="comments">
-    {{#each comments}}
-      <li>
-        <strong>{{display_name}}:</strong>
-        {{content}}
-      </li>
-    {{/each}}
-  </ul>
+<ul class="comments">
+  {{#each comments}}
+    <li>
+      <strong style="color: {{name_color}}">
+        {{display_name}}:
+      </strong>
+
+      <span class="comment-text">
+        {{shortContent}}
+      </span>
+
+      {{#if isTruncated}}
+        <button
+          class="read-more"
+          data-full="{{content}}"
+        >
+          Read More
+        </button>
+      {{/if}}
+    </li>
+  {{/each}}
+</ul>
+<script>
+document.addEventListener("click", function (e) {
+  if (!e.target.classList.contains("read-more")) return;
+
+  const button = e.target;
+  const fullText = button.dataset.full;
+  const textSpan = button.previousElementSibling;
+
+  textSpan.textContent = fullText;
+  button.remove();
+});
+</script>
+
+<div class="pagination">
+  <p>
+    Showing page {{currentPage}} of {{totalPages}}
+    ({{totalComments}} total comments)
+  </p>
+
+  <div class="pagination-controls">
+    {{#if hasPrev}}
+      <a href="/feed?page={{prevPage}}">Previous</a>
+    {{/if}}
+
+    {{#if hasNext}}
+      <a href="/feed?page={{nextPage}}">Next</a>
+    {{/if}}
+  </div>
+</div>
 </section>
+

@@ -225,21 +225,58 @@ app.get("/logout", (req, res) => {
 
 // Feed 
 app.get("/feed", requireAuth, (req, res) => {
-  const stmt = db.prepare(`
-    SELECT comments.content, users.display_name
+  const COMMENTS_PER_PAGE = 20;
+
+  // Parse and sanitize page number
+  const page = Math.max(parseInt(req.query.page) || 1, 1);
+  const offset = (page - 1) * COMMENTS_PER_PAGE;
+
+  // Get total comment count
+  const totalComments = db.prepare(`
+    SELECT COUNT(*) AS count FROM comments
+  `).get().count;
+
+  const totalPages = Math.max(Math.ceil(totalComments / COMMENTS_PER_PAGE), 1);
+
+  // Clamp page if out of range
+  const currentPage = Math.min(page, totalPages);
+  //set preview length
+  const MAX_PREVIEW_LENGTH = 200;
+  // Fetch paginated comments
+  const comments = db.prepare(`
+    SELECT
+      comments.content,
+      comments.created_at,
+      users.display_name,
+      users.name_color
     FROM comments
     JOIN users ON comments.user_id = users.id
     ORDER BY comments.created_at DESC
-  `);
+    LIMIT ? OFFSET ?
+  `).all(COMMENTS_PER_PAGE, offset);
 
-  const comments = stmt.all();
-  console.log(comments);
+  const formattedComments = comments.map(c => ({
+  ...c,
+  shortContent:
+    c.content.length > MAX_PREVIEW_LENGTH
+      ? c.content.slice(0, MAX_PREVIEW_LENGTH) + "..."
+      : c.content,
+  isTruncated: c.content.length > MAX_PREVIEW_LENGTH
+}));
 
   res.render("feed", {
-    username: req.session.username,
-    comments
+    comments,
+    currentPage,
+    totalPages,
+    totalComments,
+    comments: formattedComments,
+    hasPrev: currentPage > 1,
+    hasNext: currentPage < totalPages,
+    prevPage: currentPage - 1,
+    nextPage: currentPage + 1
   });
 });
+
 
 
 app.get("/user", requireAuth, (req, res) => {
@@ -350,8 +387,19 @@ app.post("/user/profile", requireAuth, (req, res) => {
 
 
 // comment
+const MAX_COMMENT_LENGTH = 350;
 app.post("/comment", requireAuth, (req, res) => {
   const { comment } = req.body;
+
+  if (!comment || comment.length === 0) {
+    return res.redirect("/feed");
+  }
+
+  if (comment.length > MAX_COMMENT_LENGTH) {
+    return res.render("feed", {
+      error: `Comments must be under ${MAX_COMMENT_LENGTH} characters.`,
+    });
+  }
 
   const userId = req.session.user.id;
 
