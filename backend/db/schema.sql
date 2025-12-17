@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   password TEXT NOT NULL,
   --email TEXT UNIQUE NOT NULL,
   display_name TEXT NOT NULL,
+  name_color TEXT DEFAULT '#000000',
   failed_login_attempts INTEGER DEFAULT 0,
   lock_until DATETIME
 );
@@ -13,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS comments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
+  display_name TEXT,
   content TEXT NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)

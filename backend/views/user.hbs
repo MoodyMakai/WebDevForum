@@ -1,23 +1,63 @@
 {{!< layouts/main }}
 
-<section class="dwellings">
-  <h2>{{user.displayName}}'s Abode</h2>
-  
-  <p>Customization</p>
+<section class="user-settings">
+  <h2>Account Settings</h2>
 
-  {{#if customizationOptions}}
-    <ul>
-      {{#each customizationOptions}}
-        <li>{{this}}</li>
-      {{/each}}
-    </ul>
-  {{else}}
-    <p>No customization options available.</p>
+  {{#if error}}
+    <p class="error">{{error}}</p>
   {{/if}}
 
-  <div class="account-actions">
-    <button data-action="change-name">Change Display Name</button>
-    <button data-action="change-password">Change Password</button>
-    <button data-action="change-email">Change Email</button>
-  </div>
+  {{#if success}}
+    <p class="success">{{success}}</p>
+  {{/if}}
+
+  <!-- Change Password -->
+  <form method="POST" action="/user/password" class="settings-form">
+    <h3>Change Password</h3>
+
+    <label>
+      Current Password
+      <input type="password" name="currentPassword" required />
+    </label>
+
+    <label>
+      New Password
+      <input type="password" name="newPassword" required />
+    </label>
+
+    <button type="submit">Update Password</button>
+  </form>
+
+  <!-- Change Display Name -->
+  <form method="POST" action="/user/display-name" class="settings-form">
+    <h3>Change Display Name</h3>
+
+    <label>
+      Display Name
+      <input
+        type="text"
+        name="displayName"
+        value="{{user.display_name}}"
+        required
+      />
+    </label>
+
+    <button type="submit">Update Display Name</button>
+  </form>
+
+  <!-- Profile Customization -->
+  <form method="POST" action="/user/profile" class="settings-form">
+    <h3>Profile Customization</h3>
+
+    <label>
+      Name Color
+      <input
+        type="color"
+        name="nameColor"
+        value="{{user.name_color}}"
+      />
+    </label>
+
+    <button type="submit">Save Appearance</button>
+  </form>
 </section>

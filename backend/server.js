@@ -226,13 +226,14 @@ app.get("/logout", (req, res) => {
 // Feed 
 app.get("/feed", requireAuth, (req, res) => {
   const stmt = db.prepare(`
-    SELECT comments.content, users.username
+    SELECT comments.content, users.display_name
     FROM comments
     JOIN users ON comments.user_id = users.id
     ORDER BY comments.created_at DESC
   `);
 
   const comments = stmt.all();
+  console.log(comments);
 
   res.render("feed", {
     username: req.session.username,
@@ -242,13 +243,111 @@ app.get("/feed", requireAuth, (req, res) => {
 
 
 app.get("/user", requireAuth, (req, res) => {
+  const user = db.prepare(`
+    SELECT display_name, name_color
+    FROM users
+    WHERE id = ?
+  `).get(req.session.user.id);
+
   res.render("user", {
-    user: {
-    displayName: req.session.username
-  },
-  customizationOptions: ["Rojo", "Verde", "Blue"]
+    user
   });
 });
+
+app.post("/user/password", requireAuth, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  const user = db.prepare(`
+    SELECT password
+    FROM users
+    WHERE id = ?
+  `).get(req.session.user.id);
+
+  const valid = await argon2.verify(user.password, currentPassword);
+  if (!valid) {
+    return res.render("user", { error: "Current password is incorrect" });
+  }
+
+  // Password strength validation
+  if (
+    !(isStrongPassword(newPassword))
+  ) {
+    return res.render("user", {
+      error: "Password must be at least 10 characters, include a number and uppercase letter"
+    });
+  }
+
+  const hash = await argon2.hash(newPassword);
+
+  db.prepare(`
+    UPDATE users
+    SET password = ?
+    WHERE id = ?
+  `).run(hash, req.session.user.id);
+
+  // Invalidate session
+  req.session = null;
+
+  res.redirect("/login");
+});
+
+
+
+app.post("/user/display-name", requireAuth, (req, res) => {
+  const { displayName } = req.body;
+
+  if (
+    displayName.length < 3 ||
+    displayName.length > 30 ||
+    !/^[a-zA-Z0-9 _-]+$/.test(displayName)
+  ) {
+    return res.render("user", {
+      error: "Invalid display name"
+    });
+  }
+
+  const userId = req.session.user.id;
+
+  db.prepare(`
+    UPDATE users
+    SET display_name = ?
+    WHERE id = ?
+  `).run(displayName, userId);
+
+  // Update comments (if storing display_name per comment)
+  db.prepare(`
+    UPDATE comments
+    SET display_name = ?
+    WHERE user_id = ?
+  `).run(displayName, userId);
+
+  // Update session
+  req.session.user.display_name = displayName;
+
+  res.render("user", { success: "Display name updated" });
+});
+
+
+
+
+app.post("/user/profile", requireAuth, (req, res) => {
+  const { nameColor } = req.body;
+
+  if (!/^#[0-9A-Fa-f]{6}$/.test(nameColor)) {
+    return res.render("user", { error: "Invalid color value" });
+  }
+
+  db.prepare(`
+    UPDATE users
+    SET name_color = ?
+    WHERE id = ?
+  `).run(nameColor, req.session.user.id);
+
+  req.session.user.name_color = nameColor;
+
+  res.render("user", { success: "Profile updated" });
+});
+
 
 // comment
 app.post("/comment", requireAuth, (req, res) => {
