@@ -98,6 +98,7 @@ app.post("/register", async (req, res) => {
   }
 
   try {
+    //hash password 
     const hash = await argon2.hash(password);
 
     db.prepare(`
@@ -129,8 +130,13 @@ app.post("/register", async (req, res) => {
 
 // Login 
 app.get("/login", (req, res) => {
-  res.render("login", { title: "Login" });
+  res.render("login", { 
+    title: "Login",
+   });
 });
+
+
+
 
 // Handle Login also with argon support
 app.post("/login", async (req, res) => {
