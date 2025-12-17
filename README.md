@@ -1,27 +1,79 @@
-middle security forum site
+Middle Security Forum Site
+
 Server Accessible through: https://bhbuilders.org
 
-– Database schema
+Database Schema
 
-Three tables implemented through sqlite3 with persistent storage:
-users
-login attempts
-comments
-Used for security and tracking content
-– Security features implemented Account lockout after too many failed attempts Server is set up with https through Nginx Proxy Manager ssl Passwords are hashed with argon2 passwords can be reset through profile page
+  - Three tables implemented using SQLite3 with persistent storage:
 
-– Known limitations or issues - in the interest of time (and because my server kept breaking) socket capabilities have been scratched - There is also no email functionality
+      -users
+
+      -login attempts
+
+      -comments
+
+  - These are used for security and content tracking.
+
+Security Features Implemented
+
+    - Account lockout after too many failed login attempts
+
+    - Server configured with HTTPS via Nginx Proxy Manager SSL
+
+    - Passwords hashed using Argon2
+
+    - Passwords can be reset through the profile page
+
+Known Limitations or Issues
+
+    - Socket capabilities have been removed due to server instability
+
+    - No email functionality implemented
 
 User Experience
-Users can change password, display name, and display color in profile page ("the Abode")
-comments that are too large will be truncated, users can click "read more" to view large comments
-User can log out from nav bar
-ROUTES: /register /login /logout /feed /user /user/password /user/display-name /user/profile /comment
 
-Instructions (docker prereq):
+    - Users can change their password, display name, and display color in the profile page (“the Abode”)
 
-Clone repo
-cd WebDevForum
-run "docker compose up --build"
-navigate to http://localhost:3000 on browser
-when finished "docker compose down"
+    - Comments that are too large will be truncated; users can click “Read More” to view full content
+
+    - Users can log out from the navigation bar
+
+Routes
+
+    /register
+
+    /login
+
+    /logout
+
+    /feed
+
+    /user
+
+    /user/password
+
+    /user/display-name
+
+    /user/profile
+
+    /comment
+
+Instructions (Docker Prerequisite)
+
+Clone the repository:
+
+    git clone <repo-url>
+    cd WebDevForum
+
+
+Build and run the Docker containers:
+
+    docker compose up --build
+
+
+Navigate to http://localhost:3000 in your browser.
+
+When finished, shut down the containers:
+
+    docker compose down
+
